@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Glass AI Assistant - School IT Project</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Firebase SDKs (Compat v10) -->
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-screen flex items-center justify-center p-2 sm:p-4 font-sans select-none overflow-hidden">
+
+  <!-- Dynamic Ambient 3D Glowing Lights -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Main 3D Glass Container -->
+  <div class="w-full max-w-4xl h-[92vh] glass-3d rounded-[32px] flex flex-col overflow-hidden relative z-10">
+
+    <!-- Header Bar -->
+    <header class="p-4 sm:p-5 border-b border-white/40 flex justify-between items-center bg-white/30 backdrop-blur-md">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 p-0.5 shadow-lg shadow-teal-500/20">
+          <div class="w-full h-full bg-slate-900/90 rounded-[14px] flex items-center justify-center text-lg text-emerald-400">
+            🤖
+          </div>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
+            AI Project Bot
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-700 font-semibold border border-emerald-500/20 px-2.5 py-0.5 rounded-full shadow-sm">3D Glass UI</span>
+          </h1>
+          <p class="text-xs text-slate-500 font-medium">Made by: <span id="author-name" contenteditable="true" class="underline decoration-emerald-400 decoration-2 cursor-pointer text-slate-700 font-bold">તમારું નામ</span> ✏️</p>
+        </div>
+      </div>
+
+      <!-- Auth Controls & Actions -->
+      <div class="flex items-center gap-2.5">
+        <!-- Profile Badge (Logged In State) -->
+        <div id="user-profile" class="hidden flex items-center gap-2 bg-white/70 backdrop-blur-md p-1.5 px-3 rounded-2xl border border-white/80 shadow-sm text-xs font-semibold text-slate-700">
+          <img id="user-img" class="w-6 h-6 rounded-full ring-2 ring-emerald-400/50" src="" alt="User">
+          <span id="user-name">User</span>
+          <button onclick="logoutFirebase()" title="Log out" class="text-rose-500 hover:text-rose-700 ml-1 transition"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+
+        <!-- Auth Trigger Button -->
+        <button id="login-btn" onclick="openLoginModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs px-4 py-2.5 rounded-2xl font-semibold transition shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2">
+          <i class="fas fa-user-circle text-emerald-400"></i> Log In / Sign Up
+        </button>
+
+        <!-- Clear Chat Button -->
+        <button onclick="clearChat()" title="ચેટ ક્લિયર કરો" class="p-2.5 rounded-2xl bg-white/60 hover:bg-white/90 text-slate-700 border border-white/80 transition shadow-sm active:scale-95">
+          <i class="fas fa-trash-alt text-xs"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Messages Scroll Container -->
+    <main id="chat-box" class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center text-sm font-bold shadow-md">🤖</div>
+        <div class="bot-bubble p-4 rounded-2xl rounded-tl-none max-w-[85%] text-sm leading-relaxed">
+          નમસ્તે! 👋 હું તમારો <b>Gemini AI & Firebase Connected Assistant</b> છું.<br>
+          તમે <b>Google Sign In</b> અથવા <b>Email Sign Up</b> કરીને લૉગિન કરી શકો છો!
+        </div>
+      </div>
+    </main>
+
+    <!-- Typing Indicator -->
+    <div id="typing-indicator" class="hidden px-6 py-2">
+      <div class="flex items-center gap-2 text-emerald-700 text-xs font-medium">
+        <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">🤖</div>
+        <span>AI જવાબ ટાઇપ કરી રહ્યો છે...</span>
+      </div>
+    </div>
+
+    <!-- Quick Chips -->
+    <div class="px-4 py-2 bg-white/20 border-t border-white/30 flex gap-2 overflow-x-auto text-xs whitespace-nowrap">
+      <button onclick="sendQuickMsg('Tic Tac Toe Game નો JavaScript કોડ આપો')" class="chip-btn">🎮 Tic-Tac-Toe Game</button>
+      <button onclick="sendQuickMsg('Firebase Authentication શું છે?')" class="chip-btn">🔥 Firebase Auth</button>
+      <button onclick="sendQuickMsg('Top 5 School IT Project Ideas')" class="chip-btn">🚀 IT Projects</button>
+    </div>
+
+    <!-- Input Footer Area -->
+    <footer class="p-3 sm:p-4 bg-white/40 border-t border-white/50 backdrop-blur-md">
+      <form onsubmit="handleSubmit(event)" class="flex gap-2">
+        <input 
+          type="text" 
+          id="user-input" 
+          placeholder="અહીં કંઈ પણ લખો (જેમ કે: Snake Game કોડ આપો)..." 
+          autocomplete="off"
+          class="flex-1 bg-white/80 border border-white/90 text-slate-800 placeholder-slate-400 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition shadow-inner"
+        />
+        <button type="submit" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-2xl transition flex items-center gap-2 shadow-lg shadow-teal-500/20 active:scale-95">
+          <span>Send</span>
+          <i class="fas fa-paper-plane text-xs"></i>
+        </button>
+      </form>
+    </footer>
+
+  </div>
+
+  <!-- 3D Glass Auth Modal (Sign In / Sign Up / Google Auth) -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <div class="glass-modal w-full max-w-sm rounded-[28px] p-6 shadow-2xl relative border border-white/80 text-slate-800">
+      <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2"><i class="fas fa-times"></i></button>
+      
+      <div class="text-center mb-5">
+        <h2 class="text-xl font-bold text-slate-800">Welcome Back</h2>
+        <p class="text-xs text-slate-500 mt-1">તમારું એકાઉન્ટ લૉગિન અથવા નવું Sign Up કરો</p>
+      </div>
+
+      <!-- Option 1: Google Auth -->
+      <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 border border-slate-200 shadow-sm transition mb-4 active:scale-95">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
+        <span>Google વડે ડાયરેક્ટ Log In કરો</span>
+      </button>
+
+      <div class="flex items-center my-4">
+        <div class="flex-1 border-t border-slate-200"></div>
+        <span class="px-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider">અથવા Email વડે</span>
+        <div class="flex-1 border-t border-slate-200"></div>
+      </div>
+
+      <!-- Option 2 & 3: Email Sign In & Sign Up -->
+      <div class="space-y-3">
+        <div>
+          <label class="text-[11px] font-medium text-slate-600 ml-1">Email</label>
+          <input type="email" id="auth-email" placeholder="name@example.com" class="w-full bg-white/80 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition">
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-600 ml-1">Password</label>
+          <input type="password" id="auth-pass" placeholder="••••••••" class="w-full bg-white/80 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button onclick="loginWithEmail()" class="flex-1 bg-slate-900 text-white font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-800 transition active:scale-95 shadow-md">Log In</button>
+          <button onclick="signUpWithEmail()" class="flex-1 bg-emerald-100 text-emerald-800 font-semibold py-2.5 rounded-xl text-xs hover:bg-emerald-200 border border-emerald-300 transition active:scale-95">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Load -->
+  <script src="script.js"></script>
+</body>
+</html>
