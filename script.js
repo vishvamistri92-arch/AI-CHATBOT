@@ -116,7 +116,7 @@ async function handleSubmit(e) {
 }
 
 async function fetchGeminiResponse(prompt) {
-  if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE" || !GEMINI_API_KEY) {
+  if (GEMINI_API_KEY === "AQ.Ab8RN6I-PZSIxjSsrFNLGeSkdbvKcZXvGQX8kdEnPuyXW93Hsg" || !GEMINI_API_KEY) {
     return "⚠️ **API Key બાકી છે!**<br>`script.js` માં તમારી ઓરિજિનલ Google Gemini API Key મુકો.";
   }
 
